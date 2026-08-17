@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from deepagents import create_deep_agent
 from ddgs import DDGS
@@ -24,3 +25,8 @@ class TripRequest(BaseModel):
 def plan_trip(req: TripRequest):
     result = agent.invoke({"messages": [{"role": "user", "content": req.message}]})
     return {"reply": result["messages"][-1].content}
+
+# Serves everything in the "static" folder, with index.html at "/".
+# IMPORTANT: this must be the LAST route registered, or it will swallow
+# requests meant for /plan-trip above.
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
