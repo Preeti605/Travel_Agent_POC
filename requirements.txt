@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+deepagents
+langchain-google-genai
+ddgs
