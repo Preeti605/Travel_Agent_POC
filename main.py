@@ -21,10 +21,25 @@ app = FastAPI()
 class TripRequest(BaseModel):
     message: str
 
+def extract_text(content):
+    """Gemini/Anthropic messages can return content as a plain string
+    or as a list of content blocks like [{"type": "text", "text": "..."}].
+    This normalizes either shape into plain text."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                parts.append(block.get("text", ""))
+        return "".join(parts)
+    return str(content)
+
 @app.post("/plan-trip")
 def plan_trip(req: TripRequest):
     result = agent.invoke({"messages": [{"role": "user", "content": req.message}]})
-    return {"reply": result["messages"][-1].content}
+    final_content = result["messages"][-1].content
+    return {"reply": extract_text(final_content)}
 
 # Serves everything in the "static" folder, with index.html at "/".
 # IMPORTANT: this must be the LAST route registered, or it will swallow
